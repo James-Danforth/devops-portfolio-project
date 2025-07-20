@@ -117,6 +117,7 @@ def add_to_cart():
             if product.stock < new_quantity:
                 return jsonify({'error': f'Insufficient stock. Available: {product.stock}, Requested: {new_quantity}'}), 400
             existing_item.quantity = new_quantity
+            cart_item = existing_item
         else:
             # Create new cart item
             cart_item = Cart(
@@ -127,7 +128,9 @@ def add_to_cart():
             db.session.add(cart_item)
         
         db.session.commit()
-        return jsonify({'message': 'Item added to cart successfully'}), 201
+        
+        # Return the cart item data for the test
+        return jsonify(cart_item.to_dict()), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
