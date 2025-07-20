@@ -9,7 +9,6 @@ module.exports = {
     return function (proxy, allowedHost) {
       const config = configFunction(proxy, allowedHost);
 
-      // ✅ This fixes the error
       config.allowedHosts = ['all'];
       config.host = 'localhost';
       config.port = 3000;

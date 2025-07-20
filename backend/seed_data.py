@@ -23,64 +23,56 @@ def seed_products():
                 'description': 'The definitive guide to DevOps practices and principles',
                 'price': 49.99,
                 'stock': 25,
-                'category': 'Books',
-                'image_url': 'https://via.placeholder.com/300x200?text=DevOps+Handbook'
+                'category': 'Books'
             },
             {
                 'name': 'Kubernetes in Action',
                 'description': 'Learn Kubernetes from the ground up with practical examples',
                 'price': 59.99,
                 'stock': 15,
-                'category': 'Books',
-                'image_url': 'https://via.placeholder.com/300x200?text=Kubernetes+in+Action'
+                'category': 'Books'
             },
             {
                 'name': 'Docker Deep Dive',
                 'description': 'Master Docker containers and orchestration',
                 'price': 39.99,
                 'stock': 30,
-                'category': 'Books',
-                'image_url': 'https://via.placeholder.com/300x200?text=Docker+Deep+Dive'
+                'category': 'Books'
             },
             {
                 'name': 'Terraform Up & Running',
                 'description': 'Infrastructure as Code with Terraform',
                 'price': 44.99,
                 'stock': 20,
-                'category': 'Books',
-                'image_url': 'https://via.placeholder.com/300x200?text=Terraform+Up+Running'
+                'category': 'Books'
             },
             {
                 'name': 'Prometheus Monitoring',
                 'description': 'Complete guide to monitoring with Prometheus',
                 'price': 34.99,
                 'stock': 18,
-                'category': 'Books',
-                'image_url': 'https://via.placeholder.com/300x200?text=Prometheus+Monitoring'
+                'category': 'Books'
             },
             {
                 'name': 'CI/CD Pipeline Guide',
                 'description': 'Build robust CI/CD pipelines with GitHub Actions',
                 'price': 29.99,
                 'stock': 35,
-                'category': 'Books',
-                'image_url': 'https://via.placeholder.com/300x200?text=CI+CD+Pipeline'
+                'category': 'Books'
             },
             {
                 'name': 'Microservices Architecture',
                 'description': 'Design and implement microservices patterns',
                 'price': 54.99,
                 'stock': 12,
-                'category': 'Books',
-                'image_url': 'https://via.placeholder.com/300x200?text=Microservices'
+                'category': 'Books'
             },
             {
                 'name': 'Security in DevOps',
                 'description': 'DevSecOps practices and security automation',
                 'price': 49.99,
                 'stock': 22,
-                'category': 'Books',
-                'image_url': 'https://via.placeholder.com/300x200?text=Security+DevOps'
+                'category': 'Books'
             }
         ]
         

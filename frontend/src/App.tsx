@@ -9,7 +9,6 @@ interface Product {
   price: number;
   stock: number;
   category: string;
-  image_url: string;
 }
 
 interface CartItem {
@@ -64,9 +63,10 @@ function App() {
       });
       setSuccess('Product added to cart!');
       fetchCart();
+      fetchProducts(); // Refresh products to update stock levels
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Failed to add product to cart');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to add product to cart');
       console.error('Error adding to cart:', err);
     }
   };
@@ -76,10 +76,38 @@ function App() {
       await axios.delete(`${API_BASE_URL}/cart/${cartId}`);
       setSuccess('Product removed from cart!');
       fetchCart();
+      fetchProducts(); // Refresh products to update stock levels
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Failed to remove product from cart');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to remove product from cart');
       console.error('Error removing from cart:', err);
+    }
+  };
+
+  const processPurchase = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/purchase`, {
+        user_id: 'user123'
+      });
+      setSuccess(response.data.message);
+      setCart([]); // Clear cart immediately
+      fetchProducts(); // Refresh products to update stock levels
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to process purchase');
+      console.error('Error processing purchase:', err);
+    }
+  };
+
+  const resetMarket = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/reset-market`);
+      setSuccess(response.data.message);
+      fetchProducts(); // Refresh products
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to reset market');
+      console.error('Error resetting market:', err);
     }
   };
 
@@ -101,6 +129,13 @@ function App() {
         <div className="container">
           <h1>DevOps Portfolio - E-commerce Store</h1>
           <p>Built with React, Flask, Docker, Kubernetes & CI/CD</p>
+          <button 
+            className="btn" 
+            onClick={resetMarket}
+            style={{ marginTop: '10px', backgroundColor: '#dc3545' }}
+          >
+            Reset Market
+          </button>
         </div>
       </header>
 
@@ -113,18 +148,25 @@ function App() {
           <div className="product-grid">
             {products.map((product) => (
               <div key={product.id} className="product-card">
-                <img 
-                  src={product.image_url || 'https://via.placeholder.com/300x200?text=Product'} 
-                  alt={product.name}
-                />
                 <h3>{product.name}</h3>
                 <p>{product.description}</p>
                 <div className="price">${product.price.toFixed(2)}</div>
-                <p>Stock: {product.stock}</p>
+                <p style={{ 
+                  color: product.stock === 0 ? '#dc3545' : product.stock < 5 ? '#ffc107' : '#28a745',
+                  fontWeight: 'bold'
+                }}>
+                  Stock: {product.stock}
+                  {product.stock === 0 && ' (Out of Stock)'}
+                  {product.stock > 0 && product.stock < 5 && ' (Low Stock)'}
+                </p>
                 <button 
                   className="btn" 
                   onClick={() => addToCart(product.id)}
                   disabled={product.stock === 0}
+                  style={{
+                    backgroundColor: product.stock === 0 ? '#6c757d' : '#007bff',
+                    cursor: product.stock === 0 ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                 </button>
@@ -156,7 +198,9 @@ function App() {
               ))}
               <div style={{ marginTop: '1rem', textAlign: 'right' }}>
                 <h3>Total: ${getTotalPrice().toFixed(2)}</h3>
-                <button className="btn">Checkout</button>
+                <button className="btn" onClick={processPurchase}>
+                  Purchase
+                </button>
               </div>
             </>
           )}

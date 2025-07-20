@@ -97,14 +97,37 @@ def add_to_cart():
     """Add item to cart"""
     try:
         data = request.get_json()
-        cart_item = Cart(
-            user_id=data['user_id'],
-            product_id=data['product_id'],
-            quantity=data.get('quantity', 1)
-        )
-        db.session.add(cart_item)
+        user_id = data['user_id']
+        product_id = data['product_id']
+        quantity = data.get('quantity', 1)
+        
+        # Check if product exists and has sufficient stock
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+        
+        if product.stock < quantity:
+            return jsonify({'error': f'Insufficient stock. Available: {product.stock}, Requested: {quantity}'}), 400
+        
+        # Check if item already exists in cart
+        existing_item = Cart.query.filter_by(user_id=user_id, product_id=product_id).first()
+        if existing_item:
+            # Update quantity if adding more
+            new_quantity = existing_item.quantity + quantity
+            if product.stock < new_quantity:
+                return jsonify({'error': f'Insufficient stock. Available: {product.stock}, Requested: {new_quantity}'}), 400
+            existing_item.quantity = new_quantity
+        else:
+            # Create new cart item
+            cart_item = Cart(
+                user_id=user_id,
+                product_id=product_id,
+                quantity=quantity
+            )
+            db.session.add(cart_item)
+        
         db.session.commit()
-        return jsonify(cart_item.to_dict()), 201
+        return jsonify({'message': 'Item added to cart successfully'}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -157,6 +180,80 @@ def create_order():
         db.session.add(order)
         db.session.commit()
         return jsonify(order.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/purchase', methods=['POST'])
+@track_metrics
+def process_purchase():
+    """Process a purchase - create order, clear cart, and reduce stock"""
+    try:
+        data = request.get_json()
+        user_id = data['user_id']
+        
+        # Get user's cart
+        cart_items = Cart.query.filter_by(user_id=user_id).all()
+        
+        if not cart_items:
+            return jsonify({'error': 'Cart is empty'}), 400
+        
+        # Check stock availability and calculate total
+        total_amount = 0
+        for item in cart_items:
+            product = item.product
+            if product.stock < item.quantity:
+                return jsonify({'error': f'Insufficient stock for {product.name}. Available: {product.stock}, Requested: {item.quantity}'}), 400
+            total_amount += product.price * item.quantity
+        
+        # Create order
+        order = Order(
+            user_id=user_id,
+            total_amount=total_amount,
+            status='completed'
+        )
+        db.session.add(order)
+        
+        # Reduce stock and clear cart
+        for item in cart_items:
+            product = item.product
+            product.stock -= item.quantity
+            db.session.delete(item)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Purchase completed successfully!',
+            'order_id': order.id,
+            'total_amount': total_amount
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/reset-market', methods=['POST'])
+@track_metrics
+def reset_market():
+    """Reset the market - clear orders and repopulate products"""
+    try:
+        # Clear all orders
+        Order.query.delete()
+        
+        # Reset product stock to original values
+        products = Product.query.all()
+        for product in products:
+            # Reset stock based on product ID (original stock values)
+            original_stock = {
+                1: 25, 2: 15, 3: 30, 4: 20, 5: 18, 6: 35, 7: 12, 8: 22
+            }
+            product.stock = original_stock.get(product.id, 10)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Market reset successfully! Products have been restocked.',
+            'products_count': len(products)
+        }), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500 

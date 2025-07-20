@@ -24,7 +24,6 @@ class Product(db.Model):
             'price': self.price,
             'stock': self.stock,
             'category': self.category,
-            'image_url': self.image_url,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
