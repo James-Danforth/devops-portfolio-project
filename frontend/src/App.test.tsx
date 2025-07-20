@@ -3,13 +3,15 @@ import { act } from 'react-dom/test-utils';
 import App from './App';
 
 // Mock axios to avoid network calls in tests
-const mockAxios = {
+jest.mock('axios', () => ({
   get: jest.fn(),
   post: jest.fn(),
   delete: jest.fn()
-};
+}));
 
-jest.mock('axios', () => mockAxios);
+// Import the mocked axios
+import axios from 'axios';
+const mockAxios = axios as jest.Mocked<typeof axios>;
 
 describe('App Component', () => {
   beforeEach(() => {
